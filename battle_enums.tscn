@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://jq7mddxajamf"]
+
+[ext_resource type="Script" path="res://battle_enums.gd" id="1_81og1"]
+
+[node name="BattleEnums" type="Node"]
+script = ExtResource("1_81og1")
