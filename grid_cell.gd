@@ -22,6 +22,6 @@ func occupy_cell() -> void:
 
 func unoccupy_cell() -> void:
 	occupied = false
-	
+
 func add_neighbor(neighbor: GridCell) -> void:
 	neighbors.append(neighbor)

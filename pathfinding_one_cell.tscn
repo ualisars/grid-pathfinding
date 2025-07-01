@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://csofu2n8bq4ic"]
+
+[ext_resource type="Script" path="res://pathfinding_one_cell.gd" id="1_ynib8"]
+
+[node name="PathfindingOneCell" type="Node"]
+script = ExtResource("1_ynib8")

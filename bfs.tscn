@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://rxdhn1ofteur"]
+
+[ext_resource type="Script" path="res://bfs.gd" id="1_3vbgb"]
+
+[node name="BFS" type="Node"]
+script = ExtResource("1_3vbgb")
