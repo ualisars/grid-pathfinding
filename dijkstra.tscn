@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dv5pm0sje5wjd"]
+
+[ext_resource type="Script" path="res://dijkstra.gd" id="1_1e673"]
+
+[node name="Dijkstra" type="Node"]
+script = ExtResource("1_1e673")

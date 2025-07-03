@@ -118,3 +118,43 @@ func add_neighbors_to_cells() -> void:
 				neighbors.append(grid[y + 1][x + 1]) # Bottom-right (SE)
 
 			cell.neighbors = neighbors
+
+func reconstruct_path(
+	start_cell: GridCell, 
+	target_cell: GridCell, 
+	came_from: Dictionary
+) -> Array:
+	var current_cell = target_cell
+	var path: Array = []
+	var attempt = 0
+	
+	while true:
+		path.append(current_cell)
+		
+		if current_cell == start_cell:
+			path.reverse()
+			return path
+		
+		if attempt > 50:
+			return []
+			
+		var linked_cell = came_from[current_cell]
+	
+		current_cell = linked_cell
+		attempt += 1
+	
+	return path
+	
+func print_path(
+	start_cell: GridCell, 
+	target_cell: GridCell, 
+	came_from: Dictionary
+) -> void:
+	print("start finding path from cell: " + str(start_cell.x) + ", " + str(start_cell.y))
+	print(" to cell: " + str(target_cell.x) + " " + str(target_cell.y))
+	
+	var path = reconstruct_path(start_cell, target_cell, came_from)
+	
+	print("path found")
+	for cell in path:
+		print("move to cell: " + "x: " + str(cell.x) + ", y: " + str(cell.y))

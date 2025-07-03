@@ -13,10 +13,10 @@ func _ready():
 	var start_cell = battlefield_grid.grid[0][0]
 	var target_cell = battlefield_grid.grid[2][3]
 	
-	var came_from = find_path(start_cell, target_cell)
-	var path = reconstruct_path(start_cell, target_cell, came_from)
+	var came_from = find_path(start_cell)
+	battlefield_grid.print_path(start_cell, target_cell, came_from)
 
-func find_path(start_cell: GridCell, target_cell: GridCell):
+func find_path(start_cell: GridCell):
 	var visited: Dictionary = {}
 	var queue: Array = []
 	var came_from: Dictionary = {}
@@ -35,27 +35,3 @@ func find_path(start_cell: GridCell, target_cell: GridCell):
 				queue.append(neighbor)
 				
 	return came_from
-	
-func reconstruct_path(
-	start_cell: GridCell, 
-	target_cell: GridCell, 
-	came_from: Dictionary
-) -> Array:
-	var current_cell = target_cell
-	var path: Array = []
-	var attempt = 0
-	
-	while true:
-		if current_cell == start_cell:
-			return path
-		
-		if attempt > 50:
-			return path
-			
-		var linked_cell = came_from[current_cell]
-		path.append(linked_cell)
-		
-		current_cell = linked_cell
-		attempt += 1
-	
-	return path
