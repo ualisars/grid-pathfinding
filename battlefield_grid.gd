@@ -3,33 +3,39 @@ extends Node
 class_name BattlefieldGrid
 
 var grid: Array
+var grid_pair: Array[CellPair]
 var cell_id: int = 1
 
 var map_width: int
 var map_height: int
-var grid_width: int
-var grid_height: int
+var cell_width: int
+var cell_height: int
 
 var deployment_rows_number: int = 2
 
 func _ready():
-	init_grid(1000, 400, 20, 20)
+	init_grid(60, 60, 20, 20)
+	
+	init_grid_cell_pair()
+	add_pair_neigbors()
+	
+	var a = 2
 
 func init_grid(
 	map_width_: int, 
 	map_height_: int, 
-	grid_width_: int, 
-	grid_height_: int
+	cell_width_: int, 
+	cell_height_: int
 ) -> void:
 	map_width = map_width_
 	map_height = map_height_
-	grid_width = grid_width_
-	grid_height = grid_height_
+	cell_width = cell_width_
+	cell_height = cell_height_
 	
-	for y in range(0, map_height, grid_height):
+	for y in range(0, map_height, cell_height):
 		var row = []
 		
-		for x in range(0, map_width, grid_width):
+		for x in range(0, map_width, cell_width):
 			var cell = GridCell.new()
 			cell.init_cell(x, y, cell_id)
 			row.append(cell)
@@ -46,10 +52,10 @@ func _exit_tree():
 			cell.queue_free()
 
 func get_cells_amount_in_row() -> int:
-	return map_width / grid_width
+	return map_width / cell_width
 	
 func get_total_row_amount() -> int:
-	return map_height / grid_height
+	return map_height / cell_height
 	
 func get_attack_deployment_rows() -> Array:
 	var cells = grid.slice(
@@ -158,3 +164,64 @@ func print_path(
 	print("path found")
 	for cell in path:
 		print("move to cell: " + "x: " + str(cell.x) + ", y: " + str(cell.y))
+		
+func init_grid_cell_pair():
+	for row in grid:
+		for cell in row:
+			for neighbor in cell.neighbors:
+				# cells ortagonal
+				if cell.x == neighbor.x or cell.y == neighbor.y:
+					if not is_grid_contain_pair([cell, neighbor]):
+						var cell_pair = CellPair.new()
+						cell_pair.init_cell_pair([cell, neighbor])
+						print("cell: " + cell_pair.pair_name + " been added")
+						grid_pair.append(cell_pair)
+					
+func is_grid_contain_pair(pair_to_add: Array[GridCell]) -> bool:
+	for cell_pair in grid_pair:
+		if pair_to_add[0] == cell_pair.pair[0] and pair_to_add[1] == cell_pair.pair[1]:
+			return true
+		elif pair_to_add[0] == cell_pair.pair[1] and pair_to_add[1] == cell_pair.pair[0]:
+			return true
+	return false
+	
+func is_cells_vertical(cells: Array[GridCell]) -> bool:
+	if cells[0].x == cells[1].x:
+		return true
+	return false
+	
+func is_cells_horizontal(cells: Array[GridCell]) -> bool:
+	if cells[0].y == cells[1].y:
+		return true
+	return false
+	
+func add_pair_neigbors():
+	for pair in grid_pair:
+		for other_pair in grid_pair:
+			if pair == other_pair:
+				continue
+			if is_pairs_neigbors(pair, other_pair):
+				pair.add_neighbor(other_pair)
+			
+func is_pairs_neigbors(pair1: CellPair, pair2: CellPair) -> bool:
+	var pair1_x_sum = pair1.pair[0].x + pair1.pair[1].x
+	var pair1_y_sum = pair1.pair[0].y + pair1.pair[1].y
+	var pair2_x_sum = pair2.pair[0].x + pair2.pair[1].x
+	var pair2_y_sum = pair2.pair[0].y + pair2.pair[1].y
+	
+	var dx = abs(pair1_x_sum - pair2_x_sum)
+	var dy = abs(pair1_y_sum - pair2_y_sum)
+	
+	if is_cells_horizontal(pair1.pair):
+		if dy == cell_height * 2 and dx == 0:
+			return true
+	elif is_cells_vertical(pair1.pair):
+		if dx == cell_width * 2 and dy == 0:
+			return true
+	
+	if pair1_x_sum == pair2_y_sum or pair1_y_sum == pair2_x_sum:
+		return true
+	if dx == cell_width and dy == cell_height:
+		return true
+	
+	return false

@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://wjg4g1u1hcsc"]
+
+[ext_resource type="Script" path="res://a_star_two_cells.gd" id="1_gekun"]
+
+[node name="AStarTwoCells" type="Node"]
+script = ExtResource("1_gekun")
