@@ -4,28 +4,29 @@ class_name AStarTwoCells
 
 var battlefield_grid: BattlefieldGrid
 const MAX_VALUE = 1e20
-var cell_width: int = 20
-var cell_height: int = 20
 
 func _ready():
 	battlefield_grid = BattlefieldGrid.new()
 	battlefield_grid.init_grid(100, 100, 20, 20)
 	
-	var start_cells = [
-		battlefield_grid.grid[0][0],
-		battlefield_grid.grid[0][1]
-	]
-	var target_cells = [
-		battlefield_grid.grid[2][3],
-		battlefield_grid.grid[3][3]
-	]
+	battlefield_grid.init_grid_cell_pair()
+	battlefield_grid.add_pair_neigbors()
 	
-	var came_from = find_path(start_cells, target_cells)
+	var start_pair = battlefield_grid.grid_pair[10]
+	var target_pair = battlefield_grid.grid_pair[30]
 	
-func find_path(
-	start_cells: Array[GridCell], 
-	target_cells: Array[GridCell]
-):
+	var came_from = find_path(start_pair, target_pair)
+	
+	battlefield_grid.print_pair_path(
+		start_pair,
+		target_pair,
+		came_from
+	)
+	
+	var a = 4
+	
+	
+func find_path(start_pair: CellPair, target_pair: CellPair):
 	var open_list: Array = []
 	var closed_list: Array = []
 	var came_from: Dictionary = {}
@@ -33,65 +34,92 @@ func find_path(
 	var f_score: Dictionary = {}
 	
 	add_to_open_list(
-		start_cell, 
-		calc_heuristic(start_cell, target_cell), 
+		start_pair, 
+		calc_heuristic(start_pair, target_pair), 
 		open_list
 	)
 	
-	for row in battlefield_grid.grid:
-		for cell in row:
-			g_score[cell] = MAX_VALUE
-			
-	for row in battlefield_grid.grid:
-		for cell in row:
-			f_score[cell] = MAX_VALUE
-			
-	g_score[start_cell] = 0
-	f_score[target_cell] = calc_heuristic(start_cell, target_cell)
+	for cell_pair in battlefield_grid.grid_pair:
+		g_score[cell_pair] = MAX_VALUE
 	
-	came_from[start_cell] = null
+	for cell_pair in battlefield_grid.grid_pair:
+		f_score[cell_pair] = MAX_VALUE
+	
+	g_score[start_pair] = 0
+	f_score[target_pair] = calc_heuristic(start_pair, target_pair)
+	
+	came_from[start_pair] = null
 	
 	while open_list.size() > 0:
 		var cell_to_distance = open_list.pop_front()
-		var current_cell = cell_to_distance["cell"]
+		var current_pair = cell_to_distance["pair"]
 		
-		if current_cell == target_cell:
+		if current_pair == target_pair:
 			return came_from
 			
-		closed_list.append(current_cell)
+		closed_list.append(current_pair)
 			
-		for neighbor in current_cell.neighbors:
+		for neighbor in current_pair.neighbors:
 			if neighbor in closed_list:
 				continue
 			
-			var current_distance = current_cell.position_2d.distance_to(
-				neighbor.position_2d
-			)
-			var tentative_gscore = g_score[current_cell] + current_distance
+			var current_distance = calc_pairs_distance(current_pair, neighbor)
+			
+			var tentative_gscore = g_score[current_pair] + current_distance
 			
 			if tentative_gscore < g_score[neighbor]:
-				came_from[neighbor] = current_cell
+				came_from[neighbor] = current_pair
 				g_score[neighbor] = tentative_gscore
-				f_score[neighbor] = tentative_gscore + calc_heuristic(neighbor, target_cell)
+				f_score[neighbor] = tentative_gscore + calc_heuristic(neighbor, target_pair)
 				
 				if not is_in_open_list(neighbor, open_list):
 					add_to_open_list(neighbor, f_score[neighbor], open_list)
 					
 
-func add_to_open_list(cell: GridCell, distance: int, open_list: Array) -> void:
-	open_list.append({"cell": cell, "distance": distance})
+func add_to_open_list(cell_pair: CellPair, distance: int, open_list: Array) -> void:
+	open_list.append({"pair": cell_pair, "distance": distance})
 	open_list.sort_custom(func(a, b): return a["distance"] < b["distance"])
 	
-func is_in_open_list(cell: GridCell, open_list: Array) -> bool:
+func is_in_open_list(cell_pair: CellPair, open_list: Array) -> bool:
 	for cell_to_distance in open_list:
-		if cell_to_distance["cell"] == cell:
+		if cell_to_distance["pair"] == cell_pair:
 			return true
 			
 	return false
 
+func calc_pairs_distance(current_pair: CellPair, target_pair: CellPair) -> float:
+	var current_middle_point = calc_middle_point(current_pair)
+	var target_middle_point = calc_middle_point(target_pair)
+	
+	var distance = current_middle_point.distance_to(
+		target_middle_point
+	)
+	
+	var is_rotation_needed = check_rotation_needed(current_pair, target_pair)
+
+	# manually increase distance if rotation needed
+	if is_rotation_needed:
+		distance *= 1.5
+		
+	return distance
+	
+func check_rotation_needed(current_pair: CellPair, target_pair: CellPair) -> bool:
+	var is_rotation_needed: bool = false
+	var is_current_pair_horizontal = is_cells_horizontal(current_pair.pair)
+	var is_current_pair_vertical = is_cells_vertical(current_pair.pair)
+	var is_target_pair_horizontal = is_cells_horizontal(target_pair.pair)
+	var is_target_pair_vertical = is_cells_vertical(target_pair.pair)
+	
+	if is_current_pair_horizontal and is_target_pair_vertical:
+		is_rotation_needed = true
+	elif is_current_pair_vertical and is_target_pair_horizontal:
+		is_rotation_needed = true
+	
+	return is_rotation_needed
+
 func calc_heuristic(
-	start_cells: Array[GridCell], 
-	target_cells: Array[GridCell]
+	start_cells: CellPair, 
+	target_cells: CellPair
 ) -> float:
 	var start_middle = calc_middle_point(start_cells)
 	var target_middle = calc_middle_point(target_cells)
@@ -99,18 +127,18 @@ func calc_heuristic(
 	var distance = abs(start_middle.x - target_middle.x) + abs(start_middle.y - target_middle.y)
 	return distance
 	
-func calc_middle_point(cells: Array[GridCell]) -> Vector2:
+func calc_middle_point(cell_pair: CellPair) -> Vector2:
 	var x: int
 	var y: int
 	
-	if is_cells_horizontal(cells):
+	if is_cells_horizontal(cell_pair.pair):
 		# x correspons to the left side of the cell
 		# so second cells x is middle point
-		x = cells[1].x
-		y = cells[0].y  + (cell_height / 2)
-	elif  is_cells_vertical(cells):
-		x = cells[0].x + (cell_width / 2)
-		y = cells[1].y
+		x = cell_pair.pair[1].x
+		y = cell_pair.pair[0].y + (battlefield_grid.cell_height / 2)
+	elif  is_cells_vertical(cell_pair.pair):
+		x = cell_pair.pair[0].x + (battlefield_grid.cell_width / 2)
+		y = cell_pair.pair[1].y
 		
 	return Vector2(x, y)
 

@@ -18,8 +18,6 @@ func _ready():
 	
 	init_grid_cell_pair()
 	add_pair_neigbors()
-	
-	var a = 2
 
 func init_grid(
 	map_width_: int, 
@@ -151,6 +149,33 @@ func reconstruct_path(
 	
 	return path
 	
+
+func reconstruct_pair_path(
+	start_cell: CellPair, 
+	target_cell: CellPair, 
+	came_from: Dictionary
+) -> Array:
+	var current_cell = target_cell
+	var path: Array = []
+	var attempt = 0
+	
+	while true:
+		path.append(current_cell)
+		
+		if current_cell == start_cell:
+			path.reverse()
+			return path
+		
+		if attempt > 50:
+			return []
+			
+		var linked_cell = came_from[current_cell]
+	
+		current_cell = linked_cell
+		attempt += 1
+	
+	return path
+	
 func print_path(
 	start_cell: GridCell, 
 	target_cell: GridCell, 
@@ -165,6 +190,19 @@ func print_path(
 	for cell in path:
 		print("move to cell: " + "x: " + str(cell.x) + ", y: " + str(cell.y))
 		
+func print_pair_path(
+	start_pair: CellPair, 
+	target_pair: CellPair, 
+	came_from: Dictionary
+) -> void:
+	print("start finding path from cell: " + start_pair.pair_name + ", ")
+	print(" to cell: " + target_pair.pair_name)
+	
+	var path = reconstruct_pair_path(start_pair, target_pair, came_from)
+	
+	for pair in path:
+		print("move to cell: " + pair.pair_name)
+		
 func init_grid_cell_pair():
 	for row in grid:
 		for cell in row:
@@ -174,7 +212,7 @@ func init_grid_cell_pair():
 					if not is_grid_contain_pair([cell, neighbor]):
 						var cell_pair = CellPair.new()
 						cell_pair.init_cell_pair([cell, neighbor])
-						print("cell: " + cell_pair.pair_name + " been added")
+						
 						grid_pair.append(cell_pair)
 					
 func is_grid_contain_pair(pair_to_add: Array[GridCell]) -> bool:
