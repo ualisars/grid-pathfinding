@@ -48,52 +48,26 @@ func _exit_tree():
 	if grid:
 		for cell in grid:
 			cell.queue_free()
+			
 
-func get_cells_amount_in_row() -> int:
-	return map_width / cell_width
+func get_defense_deployment_pairs() -> Array:
+	var last_row = map_height - cell_height
 	
-func get_total_row_amount() -> int:
-	return map_height / cell_height
+	var pairs = []
+	for cell_pair in grid_pair:
+		if cell_pair.pair[0].y == last_row and cell_pair.pair[1].y == last_row:
+			pairs.append(cell_pair)
+			
+	return pairs
 	
-func get_attack_deployment_rows() -> Array:
-	var cells = grid.slice(
-		grid.size() - 1, 
-		grid.size() - 1 - deployment_rows_number,
-		-1
-	)
-	
-	return cells
-	
-func get_defense_deployment_rows() -> Array:
-	var cells = grid.slice(0, deployment_rows_number)
-	
-	return cells
-
-func get_free_deployment_cells(
-	side: BattleEnums.Side
-) -> Array:
-	var rows: Array
-	
-	if side == BattleEnums.Side.ATTACK:
-		rows = get_attack_deployment_rows()
-	else:
-		rows = get_defense_deployment_rows()
-		
-	var free_cells = []
-	
-	var i = 0
-	for row in rows:
-		if i < row.size() - 1:
-			if not row[i].occupied and not row[i + 1].occupied:
-				free_cells.append(row[i])
-				free_cells.append(row[i + 1])
-				return free_cells
-		else:
-			i = 0
-			continue
-				
-	return free_cells
-
+func get_attack_deployment_pairs() -> Array:
+	var pairs = []
+	for cell_pair in grid_pair:
+		if cell_pair.pair[0].y == 0 and cell_pair.pair[1].y == 0:
+			pairs.append(cell_pair)
+			
+	return pairs
+ 
 func add_neighbors_to_cells() -> void:
 	var rows = grid.size()
 	var cols = grid[0].size()
@@ -151,12 +125,12 @@ func reconstruct_path(
 	
 
 func reconstruct_pair_path(
-	start_cell: CellPair, 
+	start_cell: CellPair,
 	target_cell: CellPair, 
 	came_from: Dictionary
-) -> Array:
+) -> Array[CellPair]:
 	var current_cell = target_cell
-	var path: Array = []
+	var path: Array[CellPair] = []
 	var attempt = 0
 	
 	while true:
@@ -257,8 +231,6 @@ func is_pairs_neigbors(pair1: CellPair, pair2: CellPair) -> bool:
 		if dx == cell_width * 2 and dy == 0:
 			return true
 	
-	if pair1_x_sum == pair2_y_sum or pair1_y_sum == pair2_x_sum:
-		return true
 	if dx == cell_width and dy == cell_height:
 		return true
 	

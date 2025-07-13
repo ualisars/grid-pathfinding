@@ -22,11 +22,11 @@ func _ready():
 		target_pair,
 		came_from
 	)
+
+func init_pathfinding(battlefield_grid_: BattlefieldGrid) -> void:
+	battlefield_grid = battlefield_grid_
 	
-	var a = 4
-	
-	
-func find_path(start_pair: CellPair, target_pair: CellPair):
+func find_path(start_pair: CellPair, target_pair: CellPair) -> Array[CellPair]:
 	var open_list: Array = []
 	var closed_list: Array = []
 	var came_from: Dictionary = {}
@@ -55,7 +55,11 @@ func find_path(start_pair: CellPair, target_pair: CellPair):
 		var current_pair = cell_to_distance["pair"]
 		
 		if current_pair == target_pair:
-			return came_from
+			return battlefield_grid.reconstruct_pair_path(
+				start_pair,
+				target_pair,
+				came_from
+			)
 			
 		closed_list.append(current_pair)
 			
@@ -75,6 +79,7 @@ func find_path(start_pair: CellPair, target_pair: CellPair):
 				if not is_in_open_list(neighbor, open_list):
 					add_to_open_list(neighbor, f_score[neighbor], open_list)
 					
+	return []
 
 func add_to_open_list(cell_pair: CellPair, distance: int, open_list: Array) -> void:
 	open_list.append({"pair": cell_pair, "distance": distance})
