@@ -5,6 +5,8 @@ class_name BattleUnit
 var unit_width: int
 var unit_height: int
 
+var side: BattleEnums.Side
+
 var current_cell_pair: CellPair
 var target_cell_pair: CellPair
 
@@ -18,7 +20,8 @@ var cell_height: int
 var target_position: Vector2 = Vector2.INF
 var current_path: Array
 var current_path_index: int = 1
-var SPEED = 10.0
+var SPEED = 30.0
+var ROTATION_SPEED = SPEED * 3
 var a_star: AStarTwoCells
 
 @onready var unit_image = $UnitImage
@@ -38,7 +41,8 @@ func _ready():
 func init(
 	cell_size: int,
 	start_pair: CellPair,
-	a_star_: AStarTwoCells
+	a_star_: AStarTwoCells,
+	side_: BattleEnums.Side
 ) -> void:
 	cell_width = cell_size
 	cell_height = cell_size
@@ -49,9 +53,8 @@ func init(
 	var left_cell = current_cell_pair.get_left_cell()
 	position = left_cell.position_2d
 	a_star = a_star_
-	
+	side = side_
 
-	
 func assign_target(target_pair: CellPair) -> void:
 	target_cell_pair = target_pair
 	
@@ -66,28 +69,36 @@ func calc_next_pair_position(next_cell_pair: CellPair) -> void:
 	var dx = current_pair_xsum - next_pair_xsum
 	var dy = current_pair_ysum - next_pair_ysum
 	
+	print("dx: ", str(dx))
+	print("dy: ", str(dy))
+	
 	if current_cell_pair.is_cells_horizontal():
 		# next cell is top left
 		if dx == cell_width and dy == cell_height * 2:
+			print("rotation: -90")
 			next_rotation = -90
 			var left_cell = current_cell_pair.get_left_cell()
 			next_position = Vector2(left_cell.x, left_cell.y + cell_height)
 		# next cell is top right
 		elif dx == cell_width and dy == 0:
+			print("rotation: -90")
 			next_rotation = -90
 			var bottom_cell = next_cell_pair.get_bottom_cell()
 			next_position = Vector2(bottom_cell.x, bottom_cell.y + cell_height)
 		# next cell is bottom right
 		elif dx == -cell_width and dy == cell_height:
+			print("rotation: 90")
 			next_rotation = 90
 			var top_cell = next_cell_pair.get_top_cell()
 			next_position = Vector2(top_cell.x + cell_width, top_cell.y)
 		# next cell is bottom left
 		elif dx == -cell_width and dy == -cell_height:
+			print("rotation: 90")
 			next_rotation = 90
 			var right_cell = current_cell_pair.get_right_cell()
 			next_position = Vector2(right_cell.x + cell_width, right_cell.y)
 		else:
+			print("rotation: 0")
 			next_rotation = 0
 			var left_cell = next_cell_pair.get_left_cell()
 			next_position = Vector2(left_cell.x, left_cell.y)
@@ -113,18 +124,22 @@ func calc_next_pair_position(next_cell_pair: CellPair) -> void:
 			next_rotation = 0
 			var left_cell = next_cell_pair.get_left_cell()
 			next_position = Vector2(left_cell.x, left_cell.y)
+		else:
+			next_rotation = 90
+			var top_cell = next_cell_pair.get_top_cell()
+			next_position = Vector2(top_cell.x, top_cell.y)
 			
 func move_to_target_position(delta):
+	make_rotation()
+	
 	if next_position != Vector2.INF:
 		position += position.direction_to(
 			next_position
 		) * SPEED * delta
-		
-		print("position is: x: ", str(position.x)  + " y: " + str(position.y))
-		
+				
 		if position.distance_to(next_position) <= SPEED * delta:
+			current_cell_pair = current_path[current_path_index]
 			position = next_position
-			print("reached position")
 			current_path_index += 1
 			
 			if current_path_index >= current_path.size():
@@ -132,6 +147,18 @@ func move_to_target_position(delta):
 			else:
 				calc_next_pair_position(current_path[current_path_index])
 
+func make_rotation():
+	if current_rotation == next_rotation:
+		return
+		
+	var diff = 1
+	
+	if current_rotation > next_rotation:
+		diff = -1
+
+	current_rotation += diff
+	rotation_degrees = current_rotation
+		
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	move_to_target_position(delta)

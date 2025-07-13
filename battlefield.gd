@@ -28,7 +28,7 @@ func _ready():
 	
 	var battle_unit = BattleUnit.instantiate()
 	var start_pairs = battlefield_grid.get_defense_deployment_pairs()
-	battle_unit.init(CELL_WIDTH, start_pairs[0], a_star)
+	battle_unit.init(CELL_WIDTH, start_pairs[0], a_star, BattleEnums.Side.DEFENSE)
 	
 	var target_pairs = battlefield_grid.get_attack_deployment_pairs()
 	var target_pair = target_pairs[10]

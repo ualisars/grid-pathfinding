@@ -50,7 +50,7 @@ func _exit_tree():
 			cell.queue_free()
 			
 
-func get_defense_deployment_pairs() -> Array:
+func get_attack_deployment_pairs() -> Array:
 	var last_row = map_height - cell_height
 	
 	var pairs = []
@@ -59,8 +59,8 @@ func get_defense_deployment_pairs() -> Array:
 			pairs.append(cell_pair)
 			
 	return pairs
-	
-func get_attack_deployment_pairs() -> Array:
+
+func get_defense_deployment_pairs() -> Array:
 	var pairs = []
 	for cell_pair in grid_pair:
 		if cell_pair.pair[0].y == 0 and cell_pair.pair[1].y == 0:
