@@ -20,23 +20,26 @@ var cell_height: int
 var target_position: Vector2 = Vector2.INF
 var current_path: Array
 var current_path_index: int = 1
-var SPEED = 30.0
-var ROTATION_SPEED = SPEED * 3
+var SPEED = 10.0
 var a_star: AStarTwoCells
+var enemy: BattleUnit
 
 @onready var unit_image = $UnitImage
 @onready var color_rect = $ColorRect
 
-# Called when the node enters the scene tree for the first time.
+
 func _ready():
 	unit_image.size.x = unit_width
 	unit_image.size.y = unit_height
 	color_rect.size.x = unit_width
 	color_rect.size.y = unit_height
 	
-	if target_cell_pair:
-		current_path = a_star.find_path(current_cell_pair, target_cell_pair)
-		calc_next_pair_position(current_path[1])
+	if side == BattleEnums.Side.ATTACK:
+		color_rect.color = Color.DARK_VIOLET
+	else:
+		color_rect.color = Color.DARK_GREEN
+	
+	start_fight()
 	
 func init(
 	cell_size: int,
@@ -55,12 +58,16 @@ func init(
 	a_star = a_star_
 	side = side_
 
-func assign_target(target_pair: CellPair) -> void:
-	target_cell_pair = target_pair
+func start_fight() -> void:
+	enemy = get_closest_enemy()
 	
+	current_path = a_star.find_path(
+		current_cell_pair, 
+		enemy.current_cell_pair
+	)
+	calc_next_pair_position(current_path[1])
 
 func calc_next_pair_position(next_cell_pair: CellPair) -> void:
-	print("calc_next_pair_position")
 	var current_pair_xsum = current_cell_pair.pair[0].x + current_cell_pair.pair[1].x
 	var current_pair_ysum = current_cell_pair.pair[0].y + current_cell_pair.pair[1].y
 	var next_pair_xsum = next_cell_pair.pair[0].x + next_cell_pair.pair[1].x
@@ -68,9 +75,6 @@ func calc_next_pair_position(next_cell_pair: CellPair) -> void:
 	
 	var dx = current_pair_xsum - next_pair_xsum
 	var dy = current_pair_ysum - next_pair_ysum
-	
-	print("dx: ", str(dx))
-	print("dy: ", str(dy))
 	
 	if current_cell_pair.is_cells_horizontal():
 		# next cell is top left
@@ -159,6 +163,18 @@ func make_rotation():
 	current_rotation += diff
 	rotation_degrees = current_rotation
 		
-# Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
 	move_to_target_position(delta)
+	
+func get_closest_enemy() -> BattleUnit:
+	var closest_enemy: BattleUnit
+	var min_distance: float = INF
+	
+	var enemy_units = BattleController.get_enemy_units(side)
+	
+	for enemy in enemy_units:
+		if position.distance_to(enemy.position) < min_distance:
+			min_distance = position.distance_to(enemy.position)
+			closest_enemy = enemy
+	
+	return closest_enemy

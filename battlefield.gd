@@ -4,6 +4,7 @@ var MAP_WIDTH = 800
 var MAP_HEIGHT = 400
 var CELL_WIDTH = 40
 var CELL_HEIGHT = 40
+var CELL_SIZE = 40
 
 @onready var background = $Background
 var BattleUnit = preload("res://battle/battle_unit.tscn")
@@ -26,21 +27,24 @@ func _ready():
 	var a_star = AStarTwoCells.new()
 	a_star.init_pathfinding(battlefield_grid)
 	
-	var battle_unit = BattleUnit.instantiate()
-	var start_pairs = battlefield_grid.get_defense_deployment_pairs()
-	battle_unit.init(CELL_WIDTH, start_pairs[0], a_star, BattleEnums.Side.DEFENSE)
+	var attack_unit = BattleUnit.instantiate()
+	var attack_pairs = battlefield_grid.get_attack_deployment_pairs()
+	attack_unit.init(CELL_SIZE, attack_pairs[0], a_star, BattleEnums.Side.ATTACK)
 	
-	var target_pairs = battlefield_grid.get_attack_deployment_pairs()
-	var target_pair = target_pairs[10]
-	#var enemy = BattleUnit.instantiate()
-	#enemy.init(CELL_WIDTH, target_pair, a_star)
+	var defense_unit = BattleUnit.instantiate()
+	var defense_pairs = battlefield_grid.get_defense_deployment_pairs()
+	defense_unit.init(
+		CELL_SIZE, 
+		defense_pairs[10],
+		a_star, 
+		BattleEnums.Side.DEFENSE
+	)
 	
-	battle_unit.assign_target(target_pair)
+	BattleController.add_to_attack_units(attack_unit)
+	BattleController.add_to_defense_units(defense_unit)
 	
-	var path = a_star.find_path( start_pairs[0], target_pair)
-	draw_path(path)
-	add_child(battle_unit)
-	#add_child(enemy)
+	add_child(attack_unit)
+	add_child(defense_unit)
 	
 func draw_path_rect(pair: CellPair) -> void:
 	var color_rect = ColorRect.new()
