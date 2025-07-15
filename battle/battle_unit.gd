@@ -24,6 +24,8 @@ var SPEED = 10.0
 var a_star: AStarTwoCells
 var enemy: BattleUnit
 
+var last_enemy_pair: CellPair
+
 @onready var unit_image = $UnitImage
 @onready var color_rect = $ColorRect
 
@@ -39,7 +41,7 @@ func _ready():
 	else:
 		color_rect.color = Color.DARK_GREEN
 	
-	start_fight()
+	calc_path()
 	
 func init(
 	cell_size: int,
@@ -58,13 +60,15 @@ func init(
 	a_star = a_star_
 	side = side_
 
-func start_fight() -> void:
+func calc_path() -> void:
 	enemy = get_closest_enemy()
 	
 	current_path = a_star.find_path(
 		current_cell_pair, 
 		enemy.current_cell_pair
 	)
+	current_path_index = 1
+	target_position = enemy.current_cell_pair.calc_middle_point()
 	calc_next_pair_position(current_path[1])
 
 func calc_next_pair_position(next_cell_pair: CellPair) -> void:
@@ -79,30 +83,25 @@ func calc_next_pair_position(next_cell_pair: CellPair) -> void:
 	if current_cell_pair.is_cells_horizontal():
 		# next cell is top left
 		if dx == cell_width and dy == cell_height * 2:
-			print("rotation: -90")
 			next_rotation = -90
 			var left_cell = current_cell_pair.get_left_cell()
 			next_position = Vector2(left_cell.x, left_cell.y + cell_height)
 		# next cell is top right
 		elif dx == cell_width and dy == 0:
-			print("rotation: -90")
 			next_rotation = -90
 			var bottom_cell = next_cell_pair.get_bottom_cell()
 			next_position = Vector2(bottom_cell.x, bottom_cell.y + cell_height)
 		# next cell is bottom right
 		elif dx == -cell_width and dy == cell_height:
-			print("rotation: 90")
 			next_rotation = 90
 			var top_cell = next_cell_pair.get_top_cell()
 			next_position = Vector2(top_cell.x + cell_width, top_cell.y)
 		# next cell is bottom left
 		elif dx == -cell_width and dy == -cell_height:
-			print("rotation: 90")
 			next_rotation = 90
 			var right_cell = current_cell_pair.get_right_cell()
 			next_position = Vector2(right_cell.x + cell_width, right_cell.y)
 		else:
-			print("rotation: 0")
 			next_rotation = 0
 			var left_cell = next_cell_pair.get_left_cell()
 			next_position = Vector2(left_cell.x, left_cell.y)
@@ -134,6 +133,11 @@ func calc_next_pair_position(next_cell_pair: CellPair) -> void:
 			next_position = Vector2(top_cell.x, top_cell.y)
 			
 func move_to_target_position(delta):
+	if need_to_recalculate_path():
+		print("recalculate path")
+		calc_path()
+		return
+	
 	make_rotation()
 	
 	if next_position != Vector2.INF:
@@ -178,3 +182,13 @@ func get_closest_enemy() -> BattleUnit:
 			closest_enemy = enemy
 	
 	return closest_enemy
+	
+func need_to_recalculate_path() -> bool:
+	var max_distance = cell_width * 3
+	var enemy_pair = enemy.current_cell_pair
+	var enemy_middle = enemy_pair.calc_middle_point()
+	
+	# enemy significally changed their location
+	if target_position.distance_to(enemy_middle) > max_distance:
+		return true
+	return false

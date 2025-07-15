@@ -104,7 +104,7 @@ func calc_pairs_distance(current_pair: CellPair, target_pair: CellPair) -> float
 
 	# manually increase distance if rotation needed
 	if is_rotation_needed:
-		distance *= 1.5
+		distance *= 1.1
 		
 	return distance
 	
