@@ -7,7 +7,7 @@ var CELL_HEIGHT = 40
 var CELL_SIZE = 40
 
 @onready var background = $Background
-var BattleUnit = preload("res://battle/battle_unit.tscn")
+var BattleUnitCellPairClass = preload("res://battle/battle_unit_cell_pair.tscn")
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -27,11 +27,11 @@ func _ready():
 	var a_star = AStarTwoCells.new()
 	a_star.init_pathfinding(battlefield_grid)
 	
-	var attack_unit = BattleUnit.instantiate()
+	var attack_unit = BattleUnitCellPairClass.instantiate()
 	var attack_pairs = battlefield_grid.get_attack_deployment_pairs()
 	attack_unit.init(CELL_SIZE, attack_pairs[0], a_star, BattleEnums.Side.ATTACK)
 	
-	var defense_unit = BattleUnit.instantiate()
+	var defense_unit = BattleUnitCellPairClass.instantiate()
 	var defense_pairs = battlefield_grid.get_defense_deployment_pairs()
 	defense_unit.init(
 		CELL_SIZE, 
@@ -40,8 +40,8 @@ func _ready():
 		BattleEnums.Side.DEFENSE
 	)
 	
-	BattleController.add_to_attack_units(attack_unit)
-	BattleController.add_to_defense_units(defense_unit)
+	BattleControllerCellPair.add_to_attack_units(attack_unit)
+	BattleControllerCellPair.add_to_defense_units(defense_unit)
 	
 	add_child(attack_unit)
 	add_child(defense_unit)

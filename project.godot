@@ -11,9 +11,10 @@ config_version=5
 [application]
 
 config/name="Grid Pathfinding"
+run/main_scene="res://battlefield_cell_pair.tscn"
 config/features=PackedStringArray("4.3", "Forward Plus")
 config/icon="res://icon.svg"
 
 [autoload]
 
-BattleController="*res://battle/battle_controller.tscn"
+BattleControllerCellPair="*res://battle/battle_controller_cell_pair.tscn"
